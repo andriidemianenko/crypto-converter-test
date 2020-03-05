@@ -6,5 +6,10 @@ export default {
     lightBlue2: '#375A88',
     lightBlue3: '#7DACF3',
     lightGreen: '#86C551'
+  },
+  text: {
+    currencyFontWeight: '600',
+    defaultFontSize: '20px',
+    smallFontSize: '16px'
   }
 }
