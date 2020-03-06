@@ -10,7 +10,7 @@ function CryptoButton({ cryptoData }) {
   return (
     <Container className="p-3" style={{ backgroundColor: lightBlue1, minHeight: "200px", height: "auto", border: isCryptoChoosen ? `3px solid ${lightBlue3}` : 'none' }}>
       <Row className="px-1">
-      <Col lg={12} xl={5}>
+        <Col lg={12} xl={5}>
           <img className="mb-2" src={`../images/${icon}`} alt="" />
           <p style={{ color: lightGreen, fontWeight: currencyFontWeight }}>{name}</p>
         </Col>
