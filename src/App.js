@@ -1,5 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react'
-import { useDispatch, useSelector, shallowEqual } from 'react-redux'
+import React, { useContext, useState, useEffect, useReducer } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { getCurrencyRates } from './store/actions'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -19,12 +19,17 @@ function useCryptoWithRates(cryptos, currencyRates, loading) {
 }
 
 function App() {
-  const [volume, setVolume] = useState(0)
   const [validationErrorExists, setValidationError] = useState(false)
-  const [currentCurrency, chooseCurrency] = useState('UAH')
+  const [volume, setVolume] = useState({ default: 0, volumeInCurrency: 0 })
+  const [choosenCurrency, chooseCurrency] = useState('UAH')
+  const [choosenCrypto, chooseCrypto] = useState('BTC')
 
-  const { colors: { mainBackground, lightGreen, borderBlue }, text: { defaultFontSize } } = useContext(context.themeContext)
+  const { 
+    colors: { mainBackground, lightGreen, borderBlue, lightBlue1 },
+    text: { defaultFontSize, currencyFontWeight }
+  } = useContext(context.themeContext)
   const cryptos = useContext(context.cryptoCurrenciesContext)
+  const currencies = useContext(context.currencies)
 
   const loading = useSelector(state => state.areCurrencyRatesLoading)
   const currencyRates = useSelector(state => state.currencyRates)
@@ -36,10 +41,28 @@ function App() {
     dispatch(getCurrencyRates())
   }, [dispatch])
 
+  useEffect(() => {
+    if (volume.default) validateAndSetVolume(volume.default)
+  }, [choosenCrypto, choosenCurrency])
+
   function validateAndSetVolume(volume) {
     const isNumber = !isNaN(parseFloat(volume)) && isFinite(volume) && !(/\s/.test(volume))
     if (isNumber) {
       setValidationError(false)
+      const { uahValue, rubValue, usdValue } = cryptosWithRate.find(crypto => crypto.name === choosenCrypto)
+      switch (choosenCurrency) {
+        case 'UAH':
+          setVolume({ default: volume, volumeInCurrency: Number(volume * uahValue).toFixed(3) })
+          break
+        case 'USD':
+          setVolume({ default: volume, volumeInCurrency: Number(volume * usdValue).toFixed(3) })
+          break
+        case 'RUB':
+          setVolume({ default: volume, volumeInCurrency: Number(volume * rubValue).toFixed(3) })
+          break
+        default:
+          return
+      }
     } else {
       setValidationError(true)
       return
@@ -52,20 +75,19 @@ function App() {
       className="py-5 vh-100"
       fluid
      >
-      <Spinner animation="grow" size="lg" />
-
+      {loading && <Spinner animation="grow" size="lg" />}
       {!loading && 
         <Row className="justify-content-center mb-4">
           {cryptosWithRate.map(crypto => {
             return (
-              <Col xs={3} key={`${crypto.name}-id`}>
-                <CryptoButton cryptoData={crypto} />
+              <Col xs={3} key={`${crypto.name}-id`} onClick={() => chooseCrypto(crypto.name) }>
+                <CryptoButton cryptoData={{ ...crypto, isCryptoChoosen: choosenCrypto === crypto.name }} />
               </Col>
             )
           })}
         </Row>
       }
-      <Form className="my-5">
+      <Form className="mt-5 mb-3">
         <Form.Group  className="justify-content-center" as={Row}>
           <Form.Label column xs={1} style={{ color: lightGreen }}>Volume:</Form.Label>
           <Col xs={6}>
@@ -82,6 +104,31 @@ function App() {
           </Col>
         </Form.Group>
       </Form>
+      {volume.default &&
+        <Row className="justify-content-center">
+          <p style={{ color: lightGreen }}>
+              <b className="pr-2">{volume.default}{choosenCrypto}</b>
+              will be
+              <b className="px-2">{volume.volumeInCurrency}</b>
+              in
+              <b className="pl-2">{choosenCurrency}</b>
+          </p>
+        </Row>
+      }
+      <Row className="justify-content-center text-center">
+        {currencies.map(currency =>
+            <Col xs={1} className="px-2" onClick={() => chooseCurrency(currency)} key={`${currency}-currency-name`}>
+            <div className="px-2 py-3"
+              style={{
+                backgroundColor: choosenCurrency === currency ? lightGreen : lightBlue1,
+                color: choosenCurrency === currency ? lightBlue1 : lightGreen,
+                fontWeight: currencyFontWeight
+              }}>
+              <span>{currency}</span>
+            </div>
+          </Col>
+        )}
+      </Row>
     </Container>
   )
 }

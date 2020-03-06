@@ -9,7 +9,7 @@ function* fetchCurrencyRates() {
     })
     const { data: [uahToUsd] } = uahResponse
     const { data: { rates } } = rubResponse
-    const payload = { rubToUsd: Number(parseFloat(rates.RUB).toFixed(3)), uahToUsd: Number(parseFloat(uahToUsd.buy).toFixed(3)) }
+    const payload = { rubToUsd: Number(parseFloat(rates.RUB).toFixed(2)), uahToUsd: Number(parseFloat(uahToUsd.buy).toFixed(2)) }
     yield put({ type: 'SET_CURRENCY_RATES', payload })
   } catch (error) {
     yield put({ type: 'FETCH_CURRENCY_ERROR', payload: error })
